@@ -92,30 +92,30 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let column = Column()
-            column.TableName = try row.string("tables.tbl_name AS table_name")
-            column.ColumnName = try row.string("columns.name AS column_name")
-            column.ColumnType = try row.string("columns.type AS column_type")
-            column.IsNotNull = try row.bool("columns.\"notnull\" AS is_notnull")
-            column.IsGenerated = try row.bool(
+            column.tableName = try row.string("tables.tbl_name AS table_name")
+            column.columnName = try row.string("columns.name AS column_name")
+            column.columnType = try row.string("columns.type AS column_type")
+            column.isNotNull = try row.bool("columns.\"notnull\" AS is_notnull")
+            column.isGenerated = try row.bool(
                 "columns.hidden = 2 AS is_generated"
             )
-            column.ColumnDefault = try row.string(
+            column.columnDefault = try row.string(
                 "COALESCE(columns.dflt_value, '') AS column_default"
             )
             let suffix = " GENERATED ALWAYS"
-            if column.ColumnType.hasSuffix(suffix) {
-                column.ColumnType = String(
-                    column.ColumnType.prefix(
-                        column.ColumnType.count - suffix.count
+            if column.columnType.hasSuffix(suffix) {
+                column.columnType = String(
+                    column.columnType.prefix(
+                        column.columnType.count - suffix.count
                     )
                 )
-                if !column.IsGenerated {
-                    column.IsGenerated = true
+                if !column.isGenerated {
+                    column.isGenerated = true
                 }
             }
-            if !column.ColumnDefault.isEmpty {
-                if !isLiteral(column.ColumnDefault) {
-                    column.ColumnDefault = wrapBrackets(column.ColumnDefault)
+            if !column.columnDefault.isEmpty {
+                if !isLiteral(column.columnDefault) {
+                    column.columnDefault = wrapBrackets(column.columnDefault)
                 }
             }
             return column
@@ -277,18 +277,18 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let constraint = Constraint()
-            constraint.TableName = try row.string("table_name")
-            constraint.ConstraintType = try row.string("constraint_type")
+            constraint.tableName = try row.string("table_name")
+            constraint.constraintType = try row.string("constraint_type")
             let columns = try row.string("columns")
-            constraint.ReferencesTable = try row.string("references_table")
+            constraint.referencesTable = try row.string("references_table")
             let referencesColumns = try row.string("references_columns")
-            constraint.UpdateRule = try row.string("update_rule")
-            constraint.DeleteRule = try row.string("delete_rule")
+            constraint.updateRule = try row.string("update_rule")
+            constraint.deleteRule = try row.string("delete_rule")
             if !columns.isEmpty {
-                constraint.Columns = columns.components(separatedBy: ",")
+                constraint.columns = columns.components(separatedBy: ",")
             }
             if !referencesColumns.isEmpty {
-                constraint.ReferencesColumns = referencesColumns.components(
+                constraint.referencesColumns = referencesColumns.components(
                     separatedBy: ","
                 )
             }
@@ -407,9 +407,9 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let table = Table()
-            table.TableName = try row.string("m.tbl_name AS table_name")
+            table.tableName = try row.string("m.tbl_name AS table_name")
             let sql = try row.string("m.sql || ';' AS sql")
-            table.SQL = sql.replacingOccurrences(of: "\r\n", with: "\n")
+            table.sql = sql.replacingOccurrences(of: "\r\n", with: "\n")
             return table
         }
     }
@@ -501,20 +501,20 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let view = View()
-            view.ViewName = try row.string("views.tbl_name AS view_name")
+            view.viewName = try row.string("views.tbl_name AS view_name")
             let sql = try row.string("views.sql || ';' AS sql")
-            view.SQL = sql.replacingOccurrences(of: "\r\n", with: "\n")
+            view.sql = sql.replacingOccurrences(of: "\r\n", with: "\n")
             let columnNames = try row.string(
                 "group_concat(columns.name, '|') AS column_names"
             )
             if !columnNames.isEmpty {
-                view.Columns = columnNames.components(separatedBy: "|")
+                view.columns = columnNames.components(separatedBy: "|")
             }
             let columnTypes = try row.string(
                 "group_concat(columns.name, '|') AS column_names"
             )
             if !columnTypes.isEmpty {
-                view.ColumnTypes = columnTypes.components(separatedBy: "|")
+                view.columnTypes = columnTypes.components(separatedBy: "|")
             }
             return view
         }
