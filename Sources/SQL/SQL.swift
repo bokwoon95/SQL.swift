@@ -26,7 +26,7 @@ public indirect enum Value: Sendable, Equatable {
     case uuid(UUID)
     case parameter(_ name: String, _ value: Value)
     case expression(_ sql: String, _ values: [Value])
-    case list(_ values: [Value])
+    case values([Value])
 
     func toBaseValue() -> BaseValue? {
         switch self {
@@ -48,54 +48,52 @@ public indirect enum Value: Sendable, Equatable {
             return .date(date)
         case .uuid(let uuid):
             return .uuid(uuid)
-        case .parameter, .expression, .list:
+        case .parameter, .expression, .values:
             return nil
         }
     }
 
-    public static func data(_ data: Data?) -> Self {
+    public static func optionalData(_ data: Data?) -> Self {
         return data == nil ? .null : .data(data!)
     }
 
-    public static func bool(_ bool: Bool?) -> Self {
+    public static func optionalBool(_ bool: Bool?) -> Self {
         return bool == nil ? .null : .bool(bool!)
     }
 
-    public static func double(_ double: Double?) -> Self {
+    public static func optionalDouble(_ double: Double?) -> Self {
         return double == nil ? .null : .double(double!)
     }
 
-    public static func int(_ int: Int?) -> Self {
+    public static func optionalInt(_ int: Int?) -> Self {
         return int == nil ? .null : .int(int!)
     }
 
-    public static func int64(_ int64: Int64?) -> Self {
+    public static func optionalInt64(_ int64: Int64?) -> Self {
         return int64 == nil ? .null : .int64(int64!)
     }
 
-    public static func string(_ string: String?) -> Self {
+    public static func optionalString(_ string: String?) -> Self {
         return string == nil ? .null : .string(string!)
     }
 
-    public static func date(_ date: Date?) -> Self {
+    public static func optionalDate(_ date: Date?) -> Self {
         return date == nil ? .null : .date(date!)
     }
 
-    public static func uuid(_ uuid: UUID?) -> Self {
+    public static func optionalUUID(_ uuid: UUID?) -> Self {
         return uuid == nil ? .null : .uuid(uuid!)
     }
 
-    public static func expression(_ sql: String, _ values: Value...)
-        -> Self
-    {
+    public static func expression(_ sql: String, _ values: Value...) -> Self {
         return .expression(sql, values)
     }
-
-    public static func toList<T>(_ items: T...) -> Self? {
-        return toList(items)
+    
+    public static func toValues<T>(_ items: T...) -> Value? {
+        return toValues(items)
     }
 
-    public static func toList<T>(_ items: [T]) -> Self? {
+    public static func toValues<T>(_ items: [T]) -> Value? {
         var values: [Value] = []
         for item in items {
             guard let value = Value.from(item) else {
@@ -103,7 +101,7 @@ public indirect enum Value: Sendable, Equatable {
             }
             values.append(value)
         }
-        return .list(values)
+        return .values(values)
     }
 
     init?(_ item: Any) {
@@ -143,7 +141,7 @@ public indirect enum Value: Sendable, Equatable {
                 }
                 values.append(value)
             }
-            return .list(values)
+            return .values(values)
         }
     }
 }
@@ -176,7 +174,7 @@ func appendValue(
                 baseValues.append(.parameter(name, value.toBaseValue()!))
                 parameterIndices[name] = [baseValues.count - 1]
             }
-        case .parameter, .expression, .list:
+        case .parameter, .expression, .values:
             try appendValue(
                 baseSQL: &baseSQL,
                 baseValues: &baseValues,
@@ -192,7 +190,7 @@ func appendValue(
             sql: sql,
             values: values
         )
-    case .list(let values):
+    case .values(let values):
         for (i, value) in values.enumerated() {
             if i > 0 {
                 baseSQL.append(", ")
@@ -349,7 +347,7 @@ func internalAppendSQL(
                     ordinalIndex[ordinal] = index
                     baseSQL.append(":\(index+1)")
                 }
-            case .parameter, .expression, .list:
+            case .parameter, .expression, .values:
                 try appendValue(
                     baseSQL: &baseSQL,
                     baseValues: &baseValues,
@@ -393,11 +391,11 @@ public struct Query: Sendable, Equatable {
     public let baseValues: [BaseValue]
     public let parameterIndices: [String: [Int]]
 
-    init(sql: String, values: [Value]) throws {
+    public init(sql: String, values: [Value]) throws {
         try self.init(sql: sql, values: values, fetchExpressions: [])
     }
 
-    internal init(
+    init(
         sql: String,
         values: [Value],
         fetchExpressions: [Value]
@@ -500,7 +498,14 @@ public struct Row {
     var index: Int32 = 0
     var fetchExpressions: [Value] = []
 
-    public mutating func data(_ sql: String, _ values: Value...) throws
+    public mutating func data(_ sql: String, _ values: [Value] = []) throws
+        -> Data
+    {
+        return try optionalData(sql, values) ?? Data()
+    }
+    
+    public mutating func optionalData(_ sql: String, _ values: [Value] = [])
+        throws
         -> Data?
     {
         if statementPointer == nil {
@@ -547,7 +552,14 @@ public struct Row {
         }
     }
 
-    public mutating func bool(_ sql: String, _ values: Value...) throws
+    public mutating func bool(_ sql: String, _ values: [Value] = []) throws
+        -> Bool
+    {
+        return try optionalBool(sql, values) ?? false
+    }
+
+    public mutating func optionalBool(_ sql: String, _ values: [Value] = [])
+        throws
         -> Bool?
     {
         if statementPointer == nil {
@@ -598,7 +610,14 @@ public struct Row {
         }
     }
 
-    public mutating func double(_ sql: String, _ values: Value...) throws
+    public mutating func double(_ sql: String, _ values: [Value] = []) throws
+        -> Double
+    {
+        return try optionalDouble(sql, values) ?? 0
+    }
+
+    public mutating func optionalDouble(_ sql: String, _ values: [Value] = [])
+        throws
         -> Double?
     {
         if statementPointer == nil {
@@ -649,7 +668,14 @@ public struct Row {
         }
     }
 
-    public mutating func int(_ sql: String, _ values: Value...) throws
+    public mutating func int(_ sql: String, _ values: [Value] = []) throws
+        -> Int
+    {
+        return try optionalInt(sql, values) ?? 0
+    }
+
+    public mutating func optionalInt(_ sql: String, _ values: [Value] = [])
+        throws
         -> Int?
     {
         if statementPointer == nil {
@@ -705,7 +731,14 @@ public struct Row {
         }
     }
 
-    public mutating func int64(_ sql: String, _ values: Value...) throws
+    public mutating func int64(_ sql: String, _ values: [Value] = []) throws
+        -> Int64
+    {
+        return try optionalInt64(sql, values) ?? 0
+    }
+
+    public mutating func optionalInt64(_ sql: String, _ values: [Value] = [])
+        throws
         -> Int64?
     {
         if statementPointer == nil {
@@ -760,7 +793,14 @@ public struct Row {
         }
     }
 
-    public mutating func string(_ sql: String, _ values: Value...) throws
+    public mutating func string(_ sql: String, _ values: [Value] = []) throws
+        -> String
+    {
+        return try optionalString(sql, values) ?? ""
+    }
+
+    public mutating func optionalString(_ sql: String, _ values: [Value] = [])
+        throws
         -> String?
     {
         if statementPointer == nil {
@@ -801,7 +841,14 @@ public struct Row {
         }
     }
 
-    public mutating func date(_ sql: String, _ values: Value...) throws
+    public mutating func date(_ sql: String, _ values: [Value] = []) throws
+        -> Date
+    {
+        return try optionalDate(sql, values) ?? Date(timeIntervalSince1970: 0)
+    }
+
+    public mutating func optionalDate(_ sql: String, _ values: [Value] = [])
+        throws
         -> Date?
     {
         if statementPointer == nil {
@@ -867,7 +914,15 @@ public struct Row {
         }
     }
 
-    public mutating func uuid(_ sql: String, _ values: Value...) throws
+    public mutating func uuid(_ sql: String, _ values: [Value] = []) throws
+        -> UUID
+    {
+        return try optionalUUID(sql, values)
+            ?? UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+    }
+
+    public mutating func optionalUUID(_ sql: String, _ values: [Value] = [])
+        throws
         -> UUID?
     {
         if statementPointer == nil {
@@ -1138,7 +1193,7 @@ public struct Connection {
             returnConnectionPointerOnCursorClose
     }
 
-    func fetchCursor<T>(
+    public func fetchCursor<T>(
         sql: String,
         values: [Value] = [],
         debug: Bool = false,
@@ -1194,7 +1249,7 @@ public struct Connection {
         )
     }
 
-    func fetchOne<T>(
+    public func fetchOne<T>(
         sql: String,
         values: [Value] = [],
         debug: Bool = false,
@@ -1237,7 +1292,7 @@ public struct Connection {
         return results
     }
 
-    func fetchExists(
+    public func fetchExists(
         sql: String,
         values: [Value] = [],
         debug: Bool = false
@@ -1290,11 +1345,11 @@ public struct Connection {
         }
     }
 
-    func execute(_ sql: String) throws {
+    public func execute(_ sql: String) throws {
         _ = try execute(sql: sql, values: [], debug: false)
     }
 
-    func execute(sql: String, values: [Value] = [], debug: Bool = false)
+    public func execute(sql: String, values: [Value] = [], debug: Bool = false)
         throws -> (lastInsertId: Int64, rowsAffected: Int64)
     {
         let query = try Query(sql: sql, values: values)
@@ -1395,7 +1450,7 @@ public struct PreparedFetch<T> {
     let returnConnectionPointerOnClose: Bool
     let query: Query
 
-    init(
+    public init(
         connection: Connection,
         sql: String,
         values: [Value] = [],
@@ -1433,14 +1488,14 @@ public struct PreparedFetch<T> {
         row.statementPointer = statementPointer!
     }
 
-    func close() {
+    public func close() {
         sqlite3_finalize(row.statementPointer)
         if returnConnectionPointerOnClose {
             connectionPointerPool.put(connectionPointer)
         }
     }
 
-    func fetchCursor(
+    public func fetchCursor(
         _ parameters: [String: BaseValue]
     ) throws -> Cursor<T> {
         var baseValues = query.baseValues
@@ -1484,7 +1539,7 @@ public struct PreparedFetch<T> {
         )
     }
 
-    func fetchOne(
+    public func fetchOne(
         _ parameters: [String: BaseValue]
     ) throws -> T? {
         var cursor = try fetchCursor(parameters)
@@ -1497,7 +1552,7 @@ public struct PreparedFetch<T> {
         return nil
     }
 
-    func fetchAll(_ parameters: [String: BaseValue]) throws -> [T] {
+    public func fetchAll(_ parameters: [String: BaseValue]) throws -> [T] {
         var cursor = try fetchCursor(parameters)
         defer {
             cursor.close()
@@ -1516,7 +1571,7 @@ public struct PreparedExecute {
     let query: Query
     let statementPointer: OpaquePointer
 
-    init(
+    public init(
         connection: Connection,
         sql: String,
         values: [Value] = [],
@@ -1547,11 +1602,11 @@ public struct PreparedExecute {
         self.statementPointer = statementPointer!
     }
 
-    func close() {
+    public func close() {
         sqlite3_finalize(statementPointer)
     }
 
-    func execute(_ parameters: [String: BaseValue]) throws -> (
+    public func execute(_ parameters: [String: BaseValue]) throws -> (
         lastInsertId: Int64, rowsAffected: Int64
     ) {
         defer {
@@ -1614,7 +1669,7 @@ public struct Database {
     let writeConnectionPointer: OpaquePointer
     let connectionPointerPool = Pool<OpaquePointer>()
 
-    init(
+    public init(
         filename: String,
         poolSize: Int = 2,
         connectionDidOpen: (
@@ -1666,14 +1721,14 @@ public struct Database {
         }
     }
 
-    mutating func close() {
+    public mutating func close() {
         sqlite3_close_v2(writeConnectionPointer)
         for readConnectionPointer in connectionPointerPool.elements {
             sqlite3_close_v2(readConnectionPointer)
         }
     }
 
-    mutating public func fetchCursor<T>(
+    public mutating func fetchCursor<T>(
         sql: String,
         values: [Value] = [],
         debug: Bool = false,
@@ -1693,7 +1748,7 @@ public struct Database {
         )
     }
 
-    mutating public func fetchOne<T>(
+    public mutating func fetchOne<T>(
         sql: String,
         values: [Value] = [],
         debug: Bool = false,
@@ -1716,7 +1771,7 @@ public struct Database {
         )
     }
 
-    mutating public func fetchAll<T>(
+    public mutating func fetchAll<T>(
         sql: String,
         values: [Value] = [],
         debug: Bool = false,
@@ -1739,7 +1794,7 @@ public struct Database {
         )
     }
 
-    mutating public func fetchExists(
+    public mutating func fetchExists(
         _ sql: String,
         _ values: [Value] = [],
         debug: Bool = false
@@ -1760,11 +1815,11 @@ public struct Database {
         )
     }
 
-    mutating public func execute(_ sql: String) throws {
+    public mutating func execute(_ sql: String) throws {
         _ = try execute(sql: sql, values: [], debug: false)
     }
 
-    mutating public func execute(
+    public mutating func execute(
         sql: String,
         values: [Value] = [],
         debug: Bool = false
@@ -1785,7 +1840,7 @@ public struct Database {
         )
     }
 
-    mutating public func read<T>(_ fn: @escaping (Connection) throws -> T)
+    public mutating func read<T>(_ fn: @escaping (Connection) throws -> T)
         rethrows -> T
     {
         let readConnectionPointer = connectionPointerPool.get()
@@ -1800,7 +1855,7 @@ public struct Database {
         return try fn(readConnection)
     }
 
-    mutating public func write<T>(
+    public mutating func write<T>(
         _ fn: @escaping (Connection) throws -> T
     ) rethrows -> T {
         writeLock.lock()

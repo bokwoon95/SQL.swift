@@ -41,7 +41,7 @@ class TestQuery {
                 .parameter("two", .expression("age")),
                 .parameter("three", .expression("age")),
                 .parameter("incr", .int(1)),
-                .parameter("list", .toList(1, 2, 3)!),
+                .parameter("list", .toValues(1, 2, 3)!),
             ]
         )
         let wantQuery = Query(
@@ -166,7 +166,7 @@ class TestQuery {
                 .expression("email"),
                 .string("bob@email.com"),
                 .expression("name"),
-                .toList("tom", "dick", "harry")!,
+                .toValues("tom", "dick", "harry")!,
             ]
         )
         let wantQuery = Query(
@@ -207,7 +207,7 @@ class TestQuery {
                 .expression("age"),
                 .expression("email"),
                 .string("bob@email.com"),
-                .toList("tom", "dick", "harry")!,
+                .toValues("tom", "dick", "harry")!,
             ]
         )
         let wantQuery = Query(
@@ -253,7 +253,7 @@ class TestQuery {
                 .expression("email"),
                 .parameter("email", .string("bob@email.com")),
                 .parameter("age", .int(5)),
-                .parameter("names", .toList(["tom", "dick", "harry"])!),
+                .parameter("names", .toValues("tom", "dick", "harry")!),
             ]
         )
         let wantQuery = Query(
@@ -340,10 +340,14 @@ class TestDatabase {
             filename: "file:/TestDatabase/openAndClose?vfs=memdb",
             poolSize: poolSize,
             connectionDidOpen: { connection in
-                try connection.execute("PRAGMA busy_timeout = 10000")
-                try connection.execute("PRAGMA foreign_keys = 1")
-                try connection.execute("PRAGMA journal_mode = WAL")
-                try connection.execute("PRAGMA synchronous = NORMAL")
+                try connection.execute(
+                    """
+                    PRAGMA busy_timeout = 10000;
+                    PRAGMA foreign_keys = 1;
+                    PRAGMA journal_mode = WAL;
+                    PRAGMA synchronous = NORMAL;
+                    """
+                )
             }
         )
         defer {
@@ -428,35 +432,35 @@ class TestDatabase {
                 VALUES ({}), ({}), ({})
                 """,
             values: [
-                .list([
-                    .data(items[0].data),
-                    .bool(items[0].bool),
-                    .double(items[0].double),
-                    .int(items[0].int),
-                    .int64(items[0].int64),
-                    .string(items[0].string),
-                    .date(items[0].date),
-                    .uuid(items[0].uuid),
+                .values([
+                    .optionalData(items[0].data),
+                    .optionalBool(items[0].bool),
+                    .optionalDouble(items[0].double),
+                    .optionalInt(items[0].int),
+                    .optionalInt64(items[0].int64),
+                    .optionalString(items[0].string),
+                    .optionalDate(items[0].date),
+                    .optionalUUID(items[0].uuid),
                 ]),
-                .list([
-                    .data(items[1].data),
-                    .bool(items[1].bool),
-                    .double(items[1].double),
-                    .int(items[1].int),
-                    .int64(items[1].int64),
-                    .string(items[1].string),
-                    .date(items[1].date),
-                    .uuid(items[1].uuid),
+                .values([
+                    .optionalData(items[1].data),
+                    .optionalBool(items[1].bool),
+                    .optionalDouble(items[1].double),
+                    .optionalInt(items[1].int),
+                    .optionalInt64(items[1].int64),
+                    .optionalString(items[1].string),
+                    .optionalDate(items[1].date),
+                    .optionalUUID(items[1].uuid),
                 ]),
-                .list([
-                    .data(items[2].data),
-                    .bool(items[2].bool),
-                    .double(items[2].double),
-                    .int(items[2].int),
-                    .int64(items[2].int64),
-                    .string(items[2].string),
-                    .date(items[2].date),
-                    .uuid(items[2].uuid),
+                .values([
+                    .optionalData(items[2].data),
+                    .optionalBool(items[2].bool),
+                    .optionalDouble(items[2].double),
+                    .optionalInt(items[2].int),
+                    .optionalInt64(items[2].int64),
+                    .optionalString(items[2].string),
+                    .optionalDate(items[2].date),
+                    .optionalUUID(items[2].uuid),
                 ]),
             ]
         )
@@ -469,14 +473,14 @@ class TestDatabase {
         ) {
             row in
             return Item(
-                data: try row.data("data"),
-                bool: try row.bool("bool"),
-                double: try row.double("double"),
-                int: try row.int("int"),
-                int64: try row.int64("int64"),
-                string: try row.string("string"),
-                date: try row.date("date"),
-                uuid: try row.uuid("uuid")
+                data: try row.optionalData("data"),
+                bool: try row.optionalBool("bool"),
+                double: try row.optionalDouble("double"),
+                int: try row.optionalInt("int"),
+                int64: try row.optionalInt64("int64"),
+                string: try row.optionalString("string"),
+                date: try row.optionalDate("date"),
+                uuid: try row.optionalUUID("uuid")
             )
         }
         #expect(fetchAllItems == items)
@@ -486,14 +490,14 @@ class TestDatabase {
         ) {
             row in
             return Item(
-                data: try row.data("data"),
-                bool: try row.bool("bool"),
-                double: try row.double("double"),
-                int: try row.int("int"),
-                int64: try row.int64("int64"),
-                string: try row.string("string"),
-                date: try row.date("date"),
-                uuid: try row.uuid("uuid")
+                data: try row.optionalData("data"),
+                bool: try row.optionalBool("bool"),
+                double: try row.optionalDouble("double"),
+                int: try row.optionalInt("int"),
+                int64: try row.optionalInt64("int64"),
+                string: try row.optionalString("string"),
+                date: try row.optionalDate("date"),
+                uuid: try row.optionalUUID("uuid")
             )
         }
         defer {
@@ -519,25 +523,25 @@ class TestDatabase {
                 AND uuid = {uuid}
                 """,
             values: [
-                .parameter("data", .data(items[1].data)),
-                .parameter("bool", .bool(items[1].bool)),
-                .parameter("double", .double(items[1].double)),
-                .parameter("int", .int(items[1].int)),
-                .parameter("int64", .int64(items[1].int64)),
-                .parameter("string", .string(items[1].string)),
-                .parameter("date", .date(items[1].date)),
-                .parameter("uuid", .uuid(items[1].uuid)),
+                .parameter("data", .optionalData(items[1].data)),
+                .parameter("bool", .optionalBool(items[1].bool)),
+                .parameter("double", .optionalDouble(items[1].double)),
+                .parameter("int", .optionalInt(items[1].int)),
+                .parameter("int64", .optionalInt64(items[1].int64)),
+                .parameter("string", .optionalString(items[1].string)),
+                .parameter("date", .optionalDate(items[1].date)),
+                .parameter("uuid", .optionalUUID(items[1].uuid)),
             ]
         ) { row in
             return Item(
-                data: try row.data("data"),
-                bool: try row.bool("bool"),
-                double: try row.double("double"),
-                int: try row.int("int"),
-                int64: try row.int64("int64"),
-                string: try row.string("string"),
-                date: try row.date("date"),
-                uuid: try row.uuid("uuid")
+                data: try row.optionalData("data"),
+                bool: try row.optionalBool("bool"),
+                double: try row.optionalDouble("double"),
+                int: try row.optionalInt("int"),
+                int64: try row.optionalInt64("int64"),
+                string: try row.optionalString("string"),
+                date: try row.optionalDate("date"),
+                uuid: try row.optionalUUID("uuid")
             )
         }
         #expect(fetchOneItem == items[1])
@@ -621,7 +625,7 @@ class TestDatabase {
                     .parameter("name", .null)
                 ]
             ) { row in
-                return try row.int("id") ?? 0
+                return try row.int("id")
             }
             defer {
                 preparedFetch.close()
@@ -690,7 +694,7 @@ class TestDatabase {
             let fetchAllIDs = try connection.fetchAll(
                 sql: "SELECT {*} FROM names WHERE name LIKE 'foo%'",
             ) { row in
-                return try row.int("id") ?? 0
+                return try row.int("id")
             }
             #expect(fetchAllIDs == [1, 2, 3])
         }
