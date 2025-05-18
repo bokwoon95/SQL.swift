@@ -1,552 +1,8 @@
 import Foundation
-import SQLite3
-
-// DatabaseIntrospector.swift, MigrateCmd.swift, GenerateCmd.swift, AutomigrateCmd.swift
-
-// ddl.go, catalog_cache.go, database_introspector.go
-
-public let PRIMARY_KEY = "PRIMARY KEY"
-public let FOREIGN_KEY = "FOREIGN KEY"
-public let UNIQUE = "UNIQUE"
-public let CHECK = "CHECK"
-public let INDEX = "INDEX"
-
-public let RESTRICT = "RESTRICT"
-public let CASCADE = "CASCADE"
-public let NO_ACTION = "NO ACTION"
-public let SET_NULL = "SET NULL"
-public let SET_DEFAULT = "SET DEFAULT"
-
-public class Catalog: Codable {
-    public var VersionNums: [Int] = []
-    public var CatalogName: String = ""
-    public var CurrentSchema: String = ""
-    public var Schemas: [Schema] = []
-}
-
-public class Schema: Codable {
-    public var SchemaName: String = ""
-    public var Tables: [Table] = []
-    public var Views: [View] = []
-    public var ViewsValid: Bool = false
-    public var Ignore: Bool = false
-}
-
-public class View: Codable {
-    public var ViewSchema: String = ""
-    public var ViewName: String = ""
-    public var SQL: String = ""
-    public var Columns: [String] = []
-    public var ColumnTypes: [String] = []
-    public var Ignore: Bool = false
-}
-
-public class Table: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var SQL: String = ""
-    public var IsVirtual: Bool = false
-    public var Columns: [Column] = []
-    public var Constraints: [Constraint] = []
-    public var Indexes: [Index] = []
-    public var Triggers: [Trigger] = []
-    public var Ignore: Bool = false
-}
-
-public class Column: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var ColumnName: String = ""
-    public var ColumnType: String = ""
-    public var CharacterLength: String = ""
-    public var NumericPrecision: String = ""
-    public var NumericScale: String = ""
-    public var IsNotNull: Bool = false
-    public var IsPrimaryKey: Bool = false
-    public var IsAutoincrement: Bool = false
-    public var ReferencesSchema: String = ""
-    public var ReferencesTable: String = ""
-    public var ReferencesColumn: String = ""
-    public var UpdateRule: String = ""
-    public var DeleteRule: String = ""
-    public var IsGenerated: Bool = false
-    public var GeneratedExpr: String = ""
-    public var GeneratedExprStored: Bool = false
-    public var ColumnDefault: String = ""
-    public var Ignore: Bool = false
-}
-
-public class Constraint: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var ConstraintName: String = ""
-    public var ConstraintType: String = ""
-    public var Columns: [String] = []
-    public var ReferencesSchema: String = ""
-    public var ReferencesTable: String = ""
-    public var ReferencesColumns: [String] = []
-    public var UpdateRule: String = ""
-    public var DeleteRule: String = ""
-    public var Ignore: Bool = false
-}
-
-public class Index: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var IndexName: String = ""
-    public var IsUnique: Bool = false
-    public var Columns: [String] = []
-    public var SQL: String = ""
-    public var Ignore: Bool = false
-}
-
-public class Trigger: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var TriggerName: String = ""
-    public var SQL = ""
-    public var Ignore: Bool = false
-}
-
-public struct CatalogCache {
-    struct Pair<T: Hashable, U: Hashable>: Hashable {
-        let first: T
-        let second: U
-        init(_ first: T, _ second: U) {
-            self.first = first
-            self.second = second
-        }
-    }
-
-    struct Triple<T: Hashable, U: Hashable, V: Hashable>: Hashable {
-        let first: T
-        let second: U
-        let third: V
-        init(_ first: T, _ second: U, _ third: V) {
-            self.first = first
-            self.second = second
-            self.third = third
-        }
-    }
-
-    var schemaIndices: [String: Int] = [:]
-    var viewIndices: [Pair<String, String>: Int] = [:]
-    var tableIndices: [Pair<String, String>: Int] = [:]
-    var columnIndices: [Triple<String, String, String>: Int] = [:]
-    var constraintIndices: [Triple<String, String, String>: Int] = [:]
-    var indexIndices: [Triple<String, String, String>: Int] = [:]
-    var triggerIndices: [Triple<String, String, String>: Int] = [:]
-    var primaryKeyIndices: [Pair<String, String>: Int] = [:]
-    var foreignKeyIndices: [Pair<String, String>: [Int]] = [:]
-
-    public init(from catalog: Catalog) {
-        for (i, schema) in catalog.Schemas.enumerated() {
-            self.schemaIndices[schema.SchemaName] = i
-            for (j, view) in schema.Views.enumerated() {
-                let viewID = Pair(schema.SchemaName, view.ViewName)
-                self.viewIndices[viewID] = j
-            }
-            for (j, table) in schema.Tables.enumerated() {
-                let tableID = Pair(schema.SchemaName, table.TableName)
-                self.tableIndices[tableID] = j
-                for (k, column) in table.Columns.enumerated() {
-                    let columnID = Triple(
-                        schema.SchemaName,
-                        table.TableName,
-                        column.ColumnName
-                    )
-                    self.columnIndices[columnID] = k
-                }
-                for (k, constraint) in table.Constraints.enumerated() {
-                    let constraintID = Triple(
-                        schema.SchemaName,
-                        table.TableName,
-                        constraint.ConstraintName
-                    )
-                    let tableID = Pair(schema.SchemaName, table.TableName)
-                    switch constraint.ConstraintType {
-                    case PRIMARY_KEY:
-                        primaryKeyIndices[tableID] = k
-                    case FOREIGN_KEY:
-                        foreignKeyIndices[tableID, default: []].append(k)
-                    default:
-                        break
-                    }
-                    if constraint.ConstraintName.isEmpty {  // SQLite constraints have no names.
-                        continue
-                    }
-                    self.constraintIndices[constraintID] = k
-                }
-                for (k, index) in table.Indexes.enumerated() {
-                    let indexID = Triple(
-                        schema.SchemaName,
-                        table.TableName,
-                        index.IndexName
-                    )
-                    self.indexIndices[indexID] = k
-                }
-                for (k, trigger) in table.Triggers.enumerated() {
-                    let triggerID = Triple(
-                        schema.SchemaName,
-                        table.TableName,
-                        trigger.TriggerName
-                    )
-                    self.triggerIndices[triggerID] = k
-                }
-            }
-        }
-    }
-
-    public func getSchema(catalog: Catalog?, schemaName: String) -> Schema? {
-        guard let catalog = catalog else {
-            return nil
-        }
-        if let i = schemaIndices[schemaName], !catalog.Schemas[i].Ignore {
-            return catalog.Schemas[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateSchema(catalog: Catalog, schemaName: String)
-        -> Schema
-    {
-        if let i = schemaIndices[schemaName], !catalog.Schemas[i].Ignore {
-            return catalog.Schemas[i]
-        }
-        let schema = Schema()
-        schema.SchemaName = schemaName
-        catalog.Schemas.append(schema)
-        let i = catalog.Schemas.count - 1
-        schemaIndices[schemaName] = i
-        return catalog.Schemas[i]
-    }
-
-    public mutating func addOrUpdateSchema(catalog: Catalog, schema: Schema) {
-        if let i = schemaIndices[schema.SchemaName], !catalog.Schemas[i].Ignore
-        {
-            catalog.Schemas[i] = schema
-            return
-        }
-        catalog.Schemas.append(schema)
-        let i = catalog.Schemas.count - 1
-        schemaIndices[schema.SchemaName] = i
-    }
-
-    public func getView(schema: Schema?, viewName: String) -> View? {
-        guard let schema = schema else {
-            return nil
-        }
-        let viewID = Pair(schema.SchemaName, viewName)
-        if let i = viewIndices[viewID], !schema.Views[i].Ignore {
-            return schema.Views[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateView(schema: Schema, viewName: String) -> View {
-        let viewID = Pair(schema.SchemaName, viewName)
-        if let i = viewIndices[viewID], !schema.Views[i].Ignore {
-            return schema.Views[i]
-        }
-        let view = View()
-        view.ViewSchema = schema.SchemaName
-        view.ViewName = viewName
-        schema.Views.append(view)
-        let i = schema.Views.count - 1
-        viewIndices[viewID] = i
-        return schema.Views[i]
-    }
-
-    public mutating func addOrUpdateView(schema: Schema, view: View) {
-        let viewID = Pair(schema.SchemaName, view.ViewName)
-        if let i = viewIndices[viewID], !schema.Views[i].Ignore {
-            schema.Views[i] = view
-            return
-        }
-        schema.Views.append(view)
-        let i = schema.Views.count - 1
-        viewIndices[viewID] = i
-    }
-
-    public func getTable(schema: Schema?, tableName: String) -> Table? {
-        guard let schema = schema else {
-            return nil
-        }
-        let tableID = Pair(schema.SchemaName, tableName)
-        if let i = tableIndices[tableID], !schema.Tables[i].Ignore {
-            return schema.Tables[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateTable(schema: Schema, tableName: String) -> Table {
-        let tableID = Pair(schema.SchemaName, tableName)
-        if let i = tableIndices[tableID], !schema.Tables[i].Ignore {
-            return schema.Tables[i]
-        }
-        let table = Table()
-        table.TableSchema = schema.SchemaName
-        table.TableName = tableName
-        schema.Tables.append(table)
-        let i = schema.Tables.count - 1
-        tableIndices[tableID] = i
-        return schema.Tables[i]
-    }
-
-    public mutating func addOrUpdateTable(schema: Schema, table: Table) {
-        let tableID = Pair(schema.SchemaName, table.TableName)
-        if let i = tableIndices[tableID], !schema.Tables[i].Ignore {
-            schema.Tables[i] = table
-            return
-        }
-        schema.Tables.append(table)
-        let i = schema.Tables.count - 1
-        tableIndices[tableID] = i
-    }
-
-    public func getColumn(table: Table?, columnName: String) -> Column? {
-        guard let table = table else {
-            return nil
-        }
-        let columnID = Triple(table.TableSchema, table.TableName, columnName)
-        if let i = columnIndices[columnID], !table.Columns[i].Ignore {
-            return table.Columns[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateColumn(table: Table, columnName: String) -> Column
-    {
-        let columnID = Triple(table.TableSchema, table.TableName, columnName)
-        if let i = columnIndices[columnID], !table.Columns[i].Ignore {
-            return table.Columns[i]
-        }
-        let column = Column()
-        column.TableSchema = table.TableSchema
-        column.TableName = table.TableName
-        column.ColumnName = columnName
-        table.Columns.append(column)
-        let i = table.Columns.count - 1
-        columnIndices[columnID] = i
-        return table.Columns[i]
-    }
-
-    public mutating func addOrUpdateColumn(table: Table, column: Column) {
-        let columnID = Triple(
-            table.TableSchema,
-            table.TableName,
-            column.ColumnName
-        )
-        if let i = columnIndices[columnID], !table.Columns[i].Ignore {
-            table.Columns[i] = column
-            return
-        }
-        table.Columns.append(column)
-        let i = table.Columns.count - 1
-        columnIndices[columnID] = i
-    }
-
-    public func getConstraint(table: Table?, constraintName: String) -> Constraint? {
-        guard let table = table else {
-            return nil
-        }
-        let constraintID = Triple(
-            table.TableSchema,
-            table.TableName,
-            constraintName
-        )
-        if let i = constraintIndices[constraintID], !table.Constraints[i].Ignore
-        {
-            return table.Constraints[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateConstraint(table: Table, constraintName: String)
-        -> Constraint
-    {
-        let constraintID = Triple(
-            table.TableSchema,
-            table.TableName,
-            constraintName
-        )
-        if let i = constraintIndices[constraintID], !table.Constraints[i].Ignore
-        {
-            return table.Constraints[i]
-        }
-        let constraint = Constraint()
-        constraint.TableSchema = table.TableSchema
-        constraint.TableName = table.TableName
-        constraint.ConstraintName = constraintName
-        table.Constraints.append(constraint)
-        let i = table.Constraints.count - 1
-        constraintIndices[constraintID] = i
-        return table.Constraints[i]
-    }
-
-    public mutating func addOrUpdateConstraint(table: Table, constraint: Constraint) {
-        let constraintID = Triple(
-            table.TableSchema,
-            table.TableName,
-            constraint.ConstraintName
-        )
-        if let i = constraintIndices[constraintID], !table.Constraints[i].Ignore
-        {
-            table.Constraints[i] = constraint
-            return
-        }
-        table.Constraints.append(constraint)
-        let i = table.Constraints.count - 1
-        let tableID = Pair(table.TableSchema, table.TableName)
-        switch constraint.ConstraintType {
-        case PRIMARY_KEY:
-            primaryKeyIndices[tableID] = i
-        case FOREIGN_KEY:
-            foreignKeyIndices[tableID, default: []].append(i)
-        default:
-            break
-        }
-        if !constraint.ConstraintName.isEmpty {  // SQLite constraints have no name.
-            constraintIndices[constraintID] = i
-        }
-    }
-
-    public func getIndex(table: Table?, indexName: String) -> Index? {
-        guard let table = table else {
-            return nil
-        }
-        let indexID = Triple(table.TableSchema, table.TableName, indexName)
-        if let i = indexIndices[indexID], !table.Indexes[i].Ignore {
-            return table.Indexes[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateIndex(table: Table, indexName: String) -> Index {
-        let indexID = Triple(table.TableSchema, table.TableName, indexName)
-        if let i = indexIndices[indexID], !table.Indexes[i].Ignore {
-            return table.Indexes[i]
-        }
-        let index = Index()
-        index.TableSchema = table.TableSchema
-        index.TableName = table.TableName
-        index.IndexName = indexName
-        table.Indexes.append(index)
-        let i = table.Indexes.count - 1
-        indexIndices[indexID] = i
-        return table.Indexes[i]
-    }
-
-    public mutating func addOrUpdateIndex(table: Table, index: Index) {
-        let indexID = Triple(
-            table.TableSchema,
-            table.TableName,
-            index.IndexName
-        )
-        if let i = indexIndices[indexID], !table.Indexes[i].Ignore {
-            table.Indexes[i] = index
-            return
-        }
-        table.Indexes.append(index)
-        let i = table.Indexes.count - 1
-        indexIndices[indexID] = i
-    }
-
-    public func getTrigger(table: Table?, triggerName: String) -> Trigger? {
-        guard let table = table else {
-            return nil
-        }
-        let triggerID = Triple(table.TableSchema, table.TableName, triggerName)
-        if let i = triggerIndices[triggerID], !table.Triggers[i].Ignore {
-            return table.Triggers[i]
-        }
-        return nil
-    }
-
-    public mutating func getOrCreateTrigger(table: Table, triggerName: String)
-        -> Trigger
-    {
-        let triggerID = Triple(table.TableSchema, table.TableName, triggerName)
-        if let i = triggerIndices[triggerID], !table.Triggers[i].Ignore {
-            return table.Triggers[i]
-        }
-        let trigger = Trigger()
-        trigger.TableSchema = table.TableSchema
-        trigger.TableName = table.TableName
-        trigger.TriggerName = triggerName
-        table.Triggers.append(trigger)
-        let i = table.Triggers.count - 1
-        triggerIndices[triggerID] = i
-        return table.Triggers[i]
-    }
-
-    public mutating func addOrUpdateTrigger(table: Table, trigger: Trigger) {
-        let triggerID = Triple(
-            table.TableSchema,
-            table.TableName,
-            trigger.TriggerName
-        )
-        if let i = triggerIndices[triggerID], !table.Triggers[i].Ignore {
-            table.Triggers[i] = trigger
-            return
-        }
-        table.Triggers.append(trigger)
-        let i = table.Triggers.count - 1
-        triggerIndices[triggerID] = i
-    }
-
-    public func getPrimaryKey(table: Table?) -> Constraint? {
-        guard let table = table else {
-            return nil
-        }
-        let tableID = Pair(table.TableSchema, table.TableName)
-        if let i = primaryKeyIndices[tableID] {
-            return table.Constraints[i]
-        }
-        return nil
-    }
-
-    public func getForeignKeys(table: Table?) -> [Constraint] {
-        guard let table = table else {
-            return []
-        }
-        let tableID = Pair(table.TableSchema, table.TableName)
-        guard let indices = foreignKeyIndices[tableID] else {
-            return []
-        }
-        var foreignKeys: [Constraint] = []
-        for i in indices {
-            let foreignKey = table.Constraints[i]
-            if foreignKey.Ignore {
-                continue
-            }
-            foreignKeys.append(foreignKey)
-        }
-        return foreignKeys
-    }
-}
-
-public struct Filter {
-    public var version: String = ""
-    public var versionNums: [Int] = []
-    public var includeSystemCatalogs: Bool = false
-    public var constraintTypes: Set<String> = Set()
-    public var objectTypes: Set<String> = Set()
-    public var tables: [String] = []
-    public var schemas: [String] = []
-    public var excludeSchemas: [String] = []
-    public var excludeTables: [String] = []
-    public var views: [String] = []
-    public var excludeViews: [String] = []
-}
 
 public struct DatabaseIntrospector {
     public var database: Database
     public var filter: Filter = Filter()
-
-    public func writeCatalog(_ catalog: Catalog) throws {
-        var _ = CatalogCache(from: catalog)
-    }
 
     func mklist(_ strs: [String]) -> String {
         var result = ""
@@ -644,8 +100,8 @@ public struct DatabaseIntrospector {
                 }
             }
             if !column.ColumnDefault.isEmpty {
-                if !isLiteral(s: column.ColumnDefault) {
-                    column.ColumnDefault = wrapBrackets(s: column.ColumnDefault)
+                if !isLiteral(column.ColumnDefault) {
+                    column.ColumnDefault = wrapBrackets(column.ColumnDefault)
                 }
             }
             return column
@@ -1078,7 +534,9 @@ func generateName(nameType: String, tableName: String, columnNames: [String])
     case FOREIGN_KEY:
         return name + "_fkey"
     case UNIQUE:
-        return name + "_unique"
+        return name + "_key"
+    case INDEX:
+        return name + "_idx"
     case CHECK:
         return name + "_check"
     default:
@@ -1086,7 +544,7 @@ func generateName(nameType: String, tableName: String, columnNames: [String])
     }
 }
 
-func isLiteral(s: String) -> Bool {
+func isLiteral(_ s: String) -> Bool {
     // Is string literal?
     if s.count >= 2 && s.first == "'" && s.last == "'" {
         return true
@@ -1112,7 +570,7 @@ func isLiteral(s: String) -> Bool {
     return false
 }
 
-func wrapBrackets(s: String) -> String {
+func wrapBrackets(_ s: String) -> String {
     if s.isEmpty {
         return s
     }
@@ -1120,6 +578,85 @@ func wrapBrackets(s: String) -> String {
         return s
     }
     return "(" + s + ")"
+}
+
+func unwrapBrackets(_ s: String) -> String {
+    if s.isEmpty {
+        return s
+    }
+    if s.first == "(" && s.last == ")" {
+        return String(s.dropFirst().dropLast())
+    }
+    return s
+}
+
+func wrappedInBrackets(_ s: String) -> Bool {
+    return !s.isEmpty && s.first == "(" && s.last == ")"
+}
+
+// TODO: port from ddl.go (only handle SQLite)
+func normalizeColumnType(columnType: String) -> (
+    normalizedType: String, arg1: String, arg2: String
+) {
+    let columnType = columnType.trimmingCharacters(in: .whitespacesAndNewlines)
+        .uppercased()
+    var normalizedType = columnType
+    var arg1 = ""
+    var arg2 = ""
+    var args = ""
+    var suffix = ""
+    if let i = columnType.firstIndex(of: "("),
+        let j = columnType.lastIndex(of: ")"), j > i
+    {
+        normalizedType = String(columnType[..<i]).trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        args = columnType[columnType.index(after: i)..<j].trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        suffix = columnType[columnType.index(after: j)...].trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        if let k = args.firstIndex(of: ",") {
+            arg1 = String(args[..<k]).trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+            arg2 = String(args[columnType.index(after: k)...])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            arg1 = args.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+    }
+    var _ = suffix  // We'll use this if we are Postgres.
+    return (normalizedType, arg1, arg2)
+}
+
+// TODO: port from ddl.go (only handle SQLite)
+func normalizeColumnDefault(columnDefault: String) -> String {
+    let columnDefault = columnDefault.trimmingCharacters(
+        in: .whitespacesAndNewlines
+    )
+    if columnDefault.isEmpty {
+        return ""
+    }
+    let upperDefault = columnDefault.uppercased()
+    switch upperDefault {
+    case "1", "TRUE":
+        return "'1'"
+    case "0", "FALSE":
+        return "'0'"
+    case "CURRENT_DATE", "CURRENT_TIME", "CURRENT_TIMESTAMP", "NULL":
+        return upperDefault
+    default:
+        break
+    }
+
+    // SQLite specific
+    if upperDefault == "DATETIME()" || upperDefault == "DATETIME('NOW')" {
+        return "CURRENT_TIMESTAMP"
+    }
+
+    return columnDefault
 }
 
 func compareVersionNums(lhs: [Int], rhs: [Int]) -> Int {
@@ -1134,5 +671,5 @@ func compareVersionNums(lhs: [Int], rhs: [Int]) -> Int {
             return -1
         }
     }
-    return 1
+    return -1
 }
