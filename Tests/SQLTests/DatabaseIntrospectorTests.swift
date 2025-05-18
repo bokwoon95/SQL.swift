@@ -297,5 +297,8 @@ class Test_compareVersionNums {
             )!
         )
     )
-    print(catalog)
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted]
+    //    #expect(String(data: try encoder.encode(catalog), encoding: .utf8) != nil)
+    print(String(data: try encoder.encode(catalog), encoding: .utf8)!)
 }
