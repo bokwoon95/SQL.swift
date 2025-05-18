@@ -28,7 +28,12 @@ public class Catalog: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(VersionNums: [Int] = [], CatalogName: String = "", CurrentSchema: String = "", Schemas: [Schema] = []) {
+    public init(
+        VersionNums: [Int] = [],
+        CatalogName: String = "",
+        CurrentSchema: String = "",
+        Schemas: [Schema] = []
+    ) {
         self.VersionNums = VersionNums
         self.CatalogName = CatalogName
         self.CurrentSchema = CurrentSchema
@@ -39,10 +44,18 @@ public class Catalog: Codable {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         // Decode, keeping default value if key is missing
-        self.VersionNums = try container.decodeIfPresent([Int].self, forKey: .VersionNums) ?? self.VersionNums
-        self.CatalogName = try container.decodeIfPresent(String.self, forKey: .CatalogName) ?? self.CatalogName
-        self.CurrentSchema = try container.decodeIfPresent(String.self, forKey: .CurrentSchema) ?? self.CurrentSchema
-        self.Schemas = try container.decodeIfPresent([Schema].self, forKey: .Schemas) ?? self.Schemas
+        self.VersionNums =
+            try container.decodeIfPresent([Int].self, forKey: .VersionNums)
+            ?? self.VersionNums
+        self.CatalogName =
+            try container.decodeIfPresent(String.self, forKey: .CatalogName)
+            ?? self.CatalogName
+        self.CurrentSchema =
+            try container.decodeIfPresent(String.self, forKey: .CurrentSchema)
+            ?? self.CurrentSchema
+        self.Schemas =
+            try container.decodeIfPresent([Schema].self, forKey: .Schemas)
+            ?? self.Schemas
     }
 
     // Keep the custom encode(to:) logic
@@ -80,7 +93,13 @@ public class Schema: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(SchemaName: String = "", Tables: [Table] = [], Views: [View] = [], ViewsValid: Bool = false, Ignore: Bool = false) {
+    public init(
+        SchemaName: String = "",
+        Tables: [Table] = [],
+        Views: [View] = [],
+        ViewsValid: Bool = false,
+        Ignore: Bool = false
+    ) {
         self.SchemaName = SchemaName
         self.Tables = Tables
         self.Views = Views
@@ -91,11 +110,21 @@ public class Schema: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.SchemaName = try container.decodeIfPresent(String.self, forKey: .SchemaName) ?? self.SchemaName
-        self.Tables = try container.decodeIfPresent([Table].self, forKey: .Tables) ?? self.Tables
-        self.Views = try container.decodeIfPresent([View].self, forKey: .Views) ?? self.Views
-        self.ViewsValid = try container.decodeIfPresent(Bool.self, forKey: .ViewsValid) ?? self.ViewsValid
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.SchemaName =
+            try container.decodeIfPresent(String.self, forKey: .SchemaName)
+            ?? self.SchemaName
+        self.Tables =
+            try container.decodeIfPresent([Table].self, forKey: .Tables)
+            ?? self.Tables
+        self.Views =
+            try container.decodeIfPresent([View].self, forKey: .Views)
+            ?? self.Views
+        self.ViewsValid =
+            try container.decodeIfPresent(Bool.self, forKey: .ViewsValid)
+            ?? self.ViewsValid
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -138,7 +167,14 @@ public class View: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(ViewSchema: String = "", ViewName: String = "", SQL: String = "", Columns: [String] = [], ColumnTypes: [String] = [], Ignore: Bool = false) {
+    public init(
+        ViewSchema: String = "",
+        ViewName: String = "",
+        SQL: String = "",
+        Columns: [String] = [],
+        ColumnTypes: [String] = [],
+        Ignore: Bool = false
+    ) {
         self.ViewSchema = ViewSchema
         self.ViewName = ViewName
         self.SQL = SQL
@@ -150,12 +186,23 @@ public class View: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.ViewSchema = try container.decodeIfPresent(String.self, forKey: .ViewSchema) ?? self.ViewSchema
-        self.ViewName = try container.decodeIfPresent(String.self, forKey: .ViewName) ?? self.ViewName
-        self.SQL = try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.Columns = try container.decodeIfPresent([String].self, forKey: .Columns) ?? self.Columns
-        self.ColumnTypes = try container.decodeIfPresent([String].self, forKey: .ColumnTypes) ?? self.ColumnTypes
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.ViewSchema =
+            try container.decodeIfPresent(String.self, forKey: .ViewSchema)
+            ?? self.ViewSchema
+        self.ViewName =
+            try container.decodeIfPresent(String.self, forKey: .ViewName)
+            ?? self.ViewName
+        self.SQL =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
+        self.Columns =
+            try container.decodeIfPresent([String].self, forKey: .Columns)
+            ?? self.Columns
+        self.ColumnTypes =
+            try container.decodeIfPresent([String].self, forKey: .ColumnTypes)
+            ?? self.ColumnTypes
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -207,7 +254,17 @@ public class Table: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(TableSchema: String = "", TableName: String = "", SQL: String = "", IsVirtual: Bool = false, Columns: [Column] = [], Constraints: [Constraint] = [], Indexes: [Index] = [], Triggers: [Trigger] = [], Ignore: Bool = false) {
+    public init(
+        TableSchema: String = "",
+        TableName: String = "",
+        SQL: String = "",
+        IsVirtual: Bool = false,
+        Columns: [Column] = [],
+        Constraints: [Constraint] = [],
+        Indexes: [Index] = [],
+        Triggers: [Trigger] = [],
+        Ignore: Bool = false
+    ) {
         self.TableSchema = TableSchema
         self.TableName = TableName
         self.SQL = SQL
@@ -222,15 +279,34 @@ public class Table: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema = try container.decodeIfPresent(String.self, forKey: .TableSchema) ?? self.TableSchema
-        self.TableName = try container.decodeIfPresent(String.self, forKey: .TableName) ?? self.TableName
-        self.SQL = try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.IsVirtual = try container.decodeIfPresent(Bool.self, forKey: .IsVirtual) ?? self.IsVirtual
-        self.Columns = try container.decodeIfPresent([Column].self, forKey: .Columns) ?? self.Columns
-        self.Constraints = try container.decodeIfPresent([Constraint].self, forKey: .Constraints) ?? self.Constraints
-        self.Indexes = try container.decodeIfPresent([Index].self, forKey: .Indexes) ?? self.Indexes
-        self.Triggers = try container.decodeIfPresent([Trigger].self, forKey: .Triggers) ?? self.Triggers
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.TableSchema =
+            try container.decodeIfPresent(String.self, forKey: .TableSchema)
+            ?? self.TableSchema
+        self.TableName =
+            try container.decodeIfPresent(String.self, forKey: .TableName)
+            ?? self.TableName
+        self.SQL =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
+        self.IsVirtual =
+            try container.decodeIfPresent(Bool.self, forKey: .IsVirtual)
+            ?? self.IsVirtual
+        self.Columns =
+            try container.decodeIfPresent([Column].self, forKey: .Columns)
+            ?? self.Columns
+        self.Constraints =
+            try container.decodeIfPresent(
+                [Constraint].self,
+                forKey: .Constraints
+            ) ?? self.Constraints
+        self.Indexes =
+            try container.decodeIfPresent([Index].self, forKey: .Indexes)
+            ?? self.Indexes
+        self.Triggers =
+            try container.decodeIfPresent([Trigger].self, forKey: .Triggers)
+            ?? self.Triggers
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -313,7 +389,28 @@ public class Column: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(TableSchema: String = "", TableName: String = "", ColumnName: String = "", ColumnType: String = "", CharacterLength: String = "", NumericPrecision: String = "", NumericScale: String = "", IsNotNull: Bool = false, IsPrimaryKey: Bool = false, IsAutoincrement: Bool = false, ReferencesSchema: String = "", ReferencesTable: String = "", ReferencesColumn: String = "", UpdateRule: String = "", DeleteRule: String = "", IsGenerated: Bool = false, GeneratedExpr: String = "", GeneratedExprStored: Bool = false, ColumnDefault: String = "", Ignore: Bool = false) {
+    public init(
+        TableSchema: String = "",
+        TableName: String = "",
+        ColumnName: String = "",
+        ColumnType: String = "",
+        CharacterLength: String = "",
+        NumericPrecision: String = "",
+        NumericScale: String = "",
+        IsNotNull: Bool = false,
+        IsPrimaryKey: Bool = false,
+        IsAutoincrement: Bool = false,
+        ReferencesSchema: String = "",
+        ReferencesTable: String = "",
+        ReferencesColumn: String = "",
+        UpdateRule: String = "",
+        DeleteRule: String = "",
+        IsGenerated: Bool = false,
+        GeneratedExpr: String = "",
+        GeneratedExprStored: Bool = false,
+        ColumnDefault: String = "",
+        Ignore: Bool = false
+    ) {
         self.TableSchema = TableSchema
         self.TableName = TableName
         self.ColumnName = ColumnName
@@ -339,26 +436,74 @@ public class Column: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema = try container.decodeIfPresent(String.self, forKey: .TableSchema) ?? self.TableSchema
-        self.TableName = try container.decodeIfPresent(String.self, forKey: .TableName) ?? self.TableName
-        self.ColumnName = try container.decodeIfPresent(String.self, forKey: .ColumnName) ?? self.ColumnName
-        self.ColumnType = try container.decodeIfPresent(String.self, forKey: .ColumnType) ?? self.ColumnType
-        self.CharacterLength = try container.decodeIfPresent(String.self, forKey: .CharacterLength) ?? self.CharacterLength
-        self.NumericPrecision = try container.decodeIfPresent(String.self, forKey: .NumericPrecision) ?? self.NumericPrecision
-        self.NumericScale = try container.decodeIfPresent(String.self, forKey: .NumericScale) ?? self.NumericScale
-        self.IsNotNull = try container.decodeIfPresent(Bool.self, forKey: .IsNotNull) ?? self.IsNotNull
-        self.IsPrimaryKey = try container.decodeIfPresent(Bool.self, forKey: .IsPrimaryKey) ?? self.IsPrimaryKey
-        self.IsAutoincrement = try container.decodeIfPresent(Bool.self, forKey: .IsAutoincrement) ?? self.IsAutoincrement
-        self.ReferencesSchema = try container.decodeIfPresent(String.self, forKey: .ReferencesSchema) ?? self.ReferencesSchema
-        self.ReferencesTable = try container.decodeIfPresent(String.self, forKey: .ReferencesTable) ?? self.ReferencesTable
-        self.ReferencesColumn = try container.decodeIfPresent(String.self, forKey: .ReferencesColumn) ?? self.ReferencesColumn
-        self.UpdateRule = try container.decodeIfPresent(String.self, forKey: .UpdateRule) ?? self.UpdateRule
-        self.DeleteRule = try container.decodeIfPresent(String.self, forKey: .DeleteRule) ?? self.DeleteRule
-        self.IsGenerated = try container.decodeIfPresent(Bool.self, forKey: .IsGenerated) ?? self.IsGenerated
-        self.GeneratedExpr = try container.decodeIfPresent(String.self, forKey: .GeneratedExpr) ?? self.GeneratedExpr
-        self.GeneratedExprStored = try container.decodeIfPresent(Bool.self, forKey: .GeneratedExprStored) ?? self.GeneratedExprStored
-        self.ColumnDefault = try container.decodeIfPresent(String.self, forKey: .ColumnDefault) ?? self.ColumnDefault
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.TableSchema =
+            try container.decodeIfPresent(String.self, forKey: .TableSchema)
+            ?? self.TableSchema
+        self.TableName =
+            try container.decodeIfPresent(String.self, forKey: .TableName)
+            ?? self.TableName
+        self.ColumnName =
+            try container.decodeIfPresent(String.self, forKey: .ColumnName)
+            ?? self.ColumnName
+        self.ColumnType =
+            try container.decodeIfPresent(String.self, forKey: .ColumnType)
+            ?? self.ColumnType
+        self.CharacterLength =
+            try container.decodeIfPresent(String.self, forKey: .CharacterLength)
+            ?? self.CharacterLength
+        self.NumericPrecision =
+            try container.decodeIfPresent(
+                String.self,
+                forKey: .NumericPrecision
+            ) ?? self.NumericPrecision
+        self.NumericScale =
+            try container.decodeIfPresent(String.self, forKey: .NumericScale)
+            ?? self.NumericScale
+        self.IsNotNull =
+            try container.decodeIfPresent(Bool.self, forKey: .IsNotNull)
+            ?? self.IsNotNull
+        self.IsPrimaryKey =
+            try container.decodeIfPresent(Bool.self, forKey: .IsPrimaryKey)
+            ?? self.IsPrimaryKey
+        self.IsAutoincrement =
+            try container.decodeIfPresent(Bool.self, forKey: .IsAutoincrement)
+            ?? self.IsAutoincrement
+        self.ReferencesSchema =
+            try container.decodeIfPresent(
+                String.self,
+                forKey: .ReferencesSchema
+            ) ?? self.ReferencesSchema
+        self.ReferencesTable =
+            try container.decodeIfPresent(String.self, forKey: .ReferencesTable)
+            ?? self.ReferencesTable
+        self.ReferencesColumn =
+            try container.decodeIfPresent(
+                String.self,
+                forKey: .ReferencesColumn
+            ) ?? self.ReferencesColumn
+        self.UpdateRule =
+            try container.decodeIfPresent(String.self, forKey: .UpdateRule)
+            ?? self.UpdateRule
+        self.DeleteRule =
+            try container.decodeIfPresent(String.self, forKey: .DeleteRule)
+            ?? self.DeleteRule
+        self.IsGenerated =
+            try container.decodeIfPresent(Bool.self, forKey: .IsGenerated)
+            ?? self.IsGenerated
+        self.GeneratedExpr =
+            try container.decodeIfPresent(String.self, forKey: .GeneratedExpr)
+            ?? self.GeneratedExpr
+        self.GeneratedExprStored =
+            try container.decodeIfPresent(
+                Bool.self,
+                forKey: .GeneratedExprStored
+            ) ?? self.GeneratedExprStored
+        self.ColumnDefault =
+            try container.decodeIfPresent(String.self, forKey: .ColumnDefault)
+            ?? self.ColumnDefault
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -417,7 +562,10 @@ public class Column: Codable {
             try container.encode(GeneratedExpr, forKey: .GeneratedExpr)
         }
         if GeneratedExprStored {
-            try container.encode(GeneratedExprStored, forKey: .GeneratedExprStored)
+            try container.encode(
+                GeneratedExprStored,
+                forKey: .GeneratedExprStored
+            )
         }
         if !ColumnDefault.isEmpty {
             try container.encode(ColumnDefault, forKey: .ColumnDefault)
@@ -456,7 +604,19 @@ public class Constraint: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(TableSchema: String = "", TableName: String = "", ConstraintName: String = "", ConstraintType: String = "", Columns: [String] = [], ReferencesSchema: String = "", ReferencesTable: String = "", ReferencesColumns: [String] = [], UpdateRule: String = "", DeleteRule: String = "", Ignore: Bool = false) {
+    public init(
+        TableSchema: String = "",
+        TableName: String = "",
+        ConstraintName: String = "",
+        ConstraintType: String = "",
+        Columns: [String] = [],
+        ReferencesSchema: String = "",
+        ReferencesTable: String = "",
+        ReferencesColumns: [String] = [],
+        UpdateRule: String = "",
+        DeleteRule: String = "",
+        Ignore: Bool = false
+    ) {
         self.TableSchema = TableSchema
         self.TableName = TableName
         self.ConstraintName = ConstraintName
@@ -473,17 +633,43 @@ public class Constraint: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema = try container.decodeIfPresent(String.self, forKey: .TableSchema) ?? self.TableSchema
-        self.TableName = try container.decodeIfPresent(String.self, forKey: .TableName) ?? self.TableName
-        self.ConstraintName = try container.decodeIfPresent(String.self, forKey: .ConstraintName) ?? self.ConstraintName
-        self.ConstraintType = try container.decodeIfPresent(String.self, forKey: .ConstraintType) ?? self.ConstraintType
-        self.Columns = try container.decodeIfPresent([String].self, forKey: .Columns) ?? self.Columns
-        self.ReferencesSchema = try container.decodeIfPresent(String.self, forKey: .ReferencesSchema) ?? self.ReferencesSchema
-        self.ReferencesTable = try container.decodeIfPresent(String.self, forKey: .ReferencesTable) ?? self.ReferencesTable
-        self.ReferencesColumns = try container.decodeIfPresent([String].self, forKey: .ReferencesColumns) ?? self.ReferencesColumns
-        self.UpdateRule = try container.decodeIfPresent(String.self, forKey: .UpdateRule) ?? self.UpdateRule
-        self.DeleteRule = try container.decodeIfPresent(String.self, forKey: .DeleteRule) ?? self.DeleteRule
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.TableSchema =
+            try container.decodeIfPresent(String.self, forKey: .TableSchema)
+            ?? self.TableSchema
+        self.TableName =
+            try container.decodeIfPresent(String.self, forKey: .TableName)
+            ?? self.TableName
+        self.ConstraintName =
+            try container.decodeIfPresent(String.self, forKey: .ConstraintName)
+            ?? self.ConstraintName
+        self.ConstraintType =
+            try container.decodeIfPresent(String.self, forKey: .ConstraintType)
+            ?? self.ConstraintType
+        self.Columns =
+            try container.decodeIfPresent([String].self, forKey: .Columns)
+            ?? self.Columns
+        self.ReferencesSchema =
+            try container.decodeIfPresent(
+                String.self,
+                forKey: .ReferencesSchema
+            ) ?? self.ReferencesSchema
+        self.ReferencesTable =
+            try container.decodeIfPresent(String.self, forKey: .ReferencesTable)
+            ?? self.ReferencesTable
+        self.ReferencesColumns =
+            try container.decodeIfPresent(
+                [String].self,
+                forKey: .ReferencesColumns
+            ) ?? self.ReferencesColumns
+        self.UpdateRule =
+            try container.decodeIfPresent(String.self, forKey: .UpdateRule)
+            ?? self.UpdateRule
+        self.DeleteRule =
+            try container.decodeIfPresent(String.self, forKey: .DeleteRule)
+            ?? self.DeleteRule
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -546,7 +732,15 @@ public class Index: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(TableSchema: String = "", TableName: String = "", IndexName: String = "", IsUnique: Bool = false, Columns: [String] = [], SQL: String = "", Ignore: Bool = false) {
+    public init(
+        TableSchema: String = "",
+        TableName: String = "",
+        IndexName: String = "",
+        IsUnique: Bool = false,
+        Columns: [String] = [],
+        SQL: String = "",
+        Ignore: Bool = false
+    ) {
         self.TableSchema = TableSchema
         self.TableName = TableName
         self.IndexName = IndexName
@@ -559,13 +753,26 @@ public class Index: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema = try container.decodeIfPresent(String.self, forKey: .TableSchema) ?? self.TableSchema
-        self.TableName = try container.decodeIfPresent(String.self, forKey: .TableName) ?? self.TableName
-        self.IndexName = try container.decodeIfPresent(String.self, forKey: .IndexName) ?? self.IndexName
-        self.IsUnique = try container.decodeIfPresent(Bool.self, forKey: .IsUnique) ?? self.IsUnique
-        self.Columns = try container.decodeIfPresent([String].self, forKey: .Columns) ?? self.Columns
-        self.SQL = try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.TableSchema =
+            try container.decodeIfPresent(String.self, forKey: .TableSchema)
+            ?? self.TableSchema
+        self.TableName =
+            try container.decodeIfPresent(String.self, forKey: .TableName)
+            ?? self.TableName
+        self.IndexName =
+            try container.decodeIfPresent(String.self, forKey: .IndexName)
+            ?? self.IndexName
+        self.IsUnique =
+            try container.decodeIfPresent(Bool.self, forKey: .IsUnique)
+            ?? self.IsUnique
+        self.Columns =
+            try container.decodeIfPresent([String].self, forKey: .Columns)
+            ?? self.Columns
+        self.SQL =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -600,7 +807,7 @@ public class Trigger: Codable {
     public var TableSchema: String = ""
     public var TableName: String = ""
     public var TriggerName: String = ""
-    public var SQL: String = "" // Added explicit String type for clarity
+    public var SQL: String = ""  // Added explicit String type for clarity
     public var Ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
@@ -612,7 +819,13 @@ public class Trigger: Codable {
     }
 
     // Replaced the empty init() with a memberwise initializer with default values
-    public init(TableSchema: String = "", TableName: String = "", TriggerName: String = "", SQL: String = "", Ignore: Bool = false) {
+    public init(
+        TableSchema: String = "",
+        TableName: String = "",
+        TriggerName: String = "",
+        SQL: String = "",
+        Ignore: Bool = false
+    ) {
         self.TableSchema = TableSchema
         self.TableName = TableName
         self.TriggerName = TriggerName
@@ -623,11 +836,20 @@ public class Trigger: Codable {
     // Keep the required init(from:) for custom decoding logic
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema = try container.decodeIfPresent(String.self, forKey: .TableSchema) ?? self.TableSchema
-        self.TableName = try container.decodeIfPresent(String.self, forKey: .TableName) ?? self.TableName
-        self.TriggerName = try container.decodeIfPresent(String.self, forKey: .TriggerName) ?? self.TriggerName
-        self.SQL = try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.Ignore = try container.decodeIfPresent(Bool.self, forKey: .Ignore) ?? self.Ignore
+        self.TableSchema =
+            try container.decodeIfPresent(String.self, forKey: .TableSchema)
+            ?? self.TableSchema
+        self.TableName =
+            try container.decodeIfPresent(String.self, forKey: .TableName)
+            ?? self.TableName
+        self.TriggerName =
+            try container.decodeIfPresent(String.self, forKey: .TriggerName)
+            ?? self.TriggerName
+        self.SQL =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
+        self.Ignore =
+            try container.decodeIfPresent(Bool.self, forKey: .Ignore)
+            ?? self.Ignore
     }
 
     // Keep the custom encode(to:) logic
@@ -1083,18 +1305,4 @@ public struct CatalogCache {
         }
         return foreignKeys
     }
-}
-
-public struct Filter {
-    public var version: String = ""
-    public var versionNums: [Int] = []
-    public var includeSystemCatalogs: Bool = false
-    public var constraintTypes: Set<String> = Set()
-    public var objectTypes: Set<String> = Set()
-    public var tables: [String] = []
-    public var schemas: [String] = []
-    public var excludeSchemas: [String] = []
-    public var excludeTables: [String] = []
-    public var views: [String] = []
-    public var excludeViews: [String] = []
 }

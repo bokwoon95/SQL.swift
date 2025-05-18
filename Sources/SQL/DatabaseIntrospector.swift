@@ -1,5 +1,19 @@
 import Foundation
 
+public struct Filter {
+    public var version: String = ""
+    public var versionNums: [Int] = []
+    public var includeSystemCatalogs: Bool = false
+    public var constraintTypes: Set<String> = Set()
+    public var objectTypes: Set<String> = Set()
+    public var tables: [String] = []
+    public var schemas: [String] = []
+    public var excludeSchemas: [String] = []
+    public var excludeTables: [String] = []
+    public var views: [String] = []
+    public var excludeViews: [String] = []
+}
+
 public struct DatabaseIntrospector {
     public var database: Database
     public var filter: Filter = Filter()
