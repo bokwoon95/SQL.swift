@@ -482,10 +482,10 @@ public struct DatabaseIntrospector {
         return try database.fetchAll(
             sql: """
                 SELECT
-                    views.tbl_name AS view_name
-                    ,views.sql || ';' AS sql
-                    ,group_concat(columns.name, '|') AS column_names
-                    ,group_concat(columns.type, '|') AS column_types
+                views.tbl_name AS view_name
+                ,views.sql || ';' AS sql
+                ,group_concat(columns.name, '|') AS column_names
+                ,group_concat(columns.type, '|') AS column_types
                 FROM (
                     SELECT tbl_name, sql
                     FROM sqlite_schema
