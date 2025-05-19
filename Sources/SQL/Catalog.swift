@@ -15,10 +15,10 @@ public let SET_NULL = "SET NULL"
 public let SET_DEFAULT = "SET DEFAULT"
 
 public class Catalog: Codable {
-    public var versionNums: [Int]
-    public var catalogName: String
-    public var currentSchema: String
-    public var schemas: [Schema]
+    public var versionNums: [Int] = []
+    public var catalogName: String = ""
+    public var currentSchema: String = ""
+    public var schemas: [Schema] = []
 
     private enum CodingKeys: String, CodingKey {
         case VersionNums
@@ -27,17 +27,7 @@ public class Catalog: Codable {
         case Schemas
     }
 
-    public init(
-        versionNums: [Int] = [],
-        catalogName: String = "",
-        currentSchema: String = "",
-        schemas: [Schema] = []
-    ) {
-        self.versionNums = versionNums
-        self.catalogName = catalogName
-        self.currentSchema = currentSchema
-        self.schemas = schemas
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -73,11 +63,11 @@ public class Catalog: Codable {
 }
 
 public class Schema: Codable {
-    public var schemaName: String
-    public var tables: [Table]
-    public var views: [View]
-    public var viewsValid: Bool
-    public var ignore: Bool
+    public var schemaName: String = ""
+    public var tables: [Table] = []
+    public var views: [View] = []
+    public var viewsValid: Bool = false
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case SchemaName
@@ -87,19 +77,7 @@ public class Schema: Codable {
         case Ignore
     }
 
-    public init(
-        schemaName: String = "",
-        tables: [Table] = [],
-        views: [View] = [],
-        viewsValid: Bool = false,
-        ignore: Bool = false
-    ) {
-        self.schemaName = schemaName
-        self.tables = tables
-        self.views = views
-        self.viewsValid = viewsValid
-        self.ignore = ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -141,12 +119,12 @@ public class Schema: Codable {
 }
 
 public class View: Codable {
-    public var viewSchema: String
-    public var viewName: String
-    public var sql: String
-    public var columns: [String]
-    public var columnTypes: [String]
-    public var ignore: Bool
+    public var viewSchema: String = ""
+    public var viewName: String = ""
+    public var sql: String = ""
+    public var columns: [String] = []
+    public var columnTypes: [String] = []
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case ViewSchema
@@ -157,21 +135,7 @@ public class View: Codable {
         case Ignore
     }
 
-    public init(
-        viewSchema: String = "",
-        viewName: String = "",
-        sql: String = "",
-        columns: [String] = [],
-        columnTypes: [String] = [],
-        ignore: Bool = false
-    ) {
-        self.viewSchema = viewSchema
-        self.viewName = viewName
-        self.sql = sql
-        self.columns = columns
-        self.columnTypes = columnTypes
-        self.ignore = ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -218,15 +182,15 @@ public class View: Codable {
 }
 
 public class Table: Codable {
-    public var tableSchema: String
-    public var tableName: String
-    public var sql: String
-    public var isVirtual: Bool
-    public var columns: [Column]
-    public var constraints: [Constraint]
-    public var indexes: [Index]
-    public var triggers: [Trigger]
-    public var ignore: Bool
+    public var tableSchema: String = ""
+    public var tableName: String = ""
+    public var sql: String = ""
+    public var isVirtual: Bool = false
+    public var columns: [Column] = []
+    public var constraints: [Constraint] = []
+    public var indexes: [Index] = []
+    public var triggers: [Trigger] = []
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case TableSchema
@@ -240,27 +204,7 @@ public class Table: Codable {
         case Ignore
     }
 
-    public init(
-        tableSchema: String = "",
-        tableName: String = "",
-        sql: String = "",
-        isVirtual: Bool = false,
-        columns: [Column] = [],
-        constraints: [Constraint] = [],
-        indexes: [Index] = [],
-        triggers: [Trigger] = [],
-        ignore: Bool = false
-    ) {
-        self.tableSchema = tableSchema
-        self.tableName = tableName
-        self.sql = sql
-        self.isVirtual = isVirtual
-        self.columns = columns
-        self.constraints = constraints
-        self.indexes = indexes
-        self.triggers = triggers
-        self.ignore = ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -327,26 +271,26 @@ public class Table: Codable {
 }
 
 public class Column: Codable {
-    public var tableSchema: String
-    public var tableName: String
-    public var columnName: String
-    public var columnType: String
-    public var characterLength: String
-    public var numericPrecision: String
-    public var numericScale: String
-    public var isNotNull: Bool
-    public var isPrimaryKey: Bool
-    public var isAutoincrement: Bool
-    public var referencesSchema: String
-    public var referencesTable: String
-    public var referencesColumn: String
-    public var updateRule: String
-    public var deleteRule: String
-    public var isGenerated: Bool
-    public var generatedExpr: String
-    public var generatedExprStored: Bool
-    public var columnDefault: String
-    public var ignore: Bool
+    public var tableSchema: String = ""
+    public var tableName: String = ""
+    public var columnName: String = ""
+    public var columnType: String = ""
+    public var characterLength: String = ""
+    public var numericPrecision: String = ""
+    public var numericScale: String = ""
+    public var isNotNull: Bool = false
+    public var isPrimaryKey: Bool = false
+    public var isAutoincrement: Bool = false
+    public var referencesSchema: String = ""
+    public var referencesTable: String = ""
+    public var referencesColumn: String = ""
+    public var updateRule: String = ""
+    public var deleteRule: String = ""
+    public var isGenerated: Bool = false
+    public var generatedExpr: String = ""
+    public var generatedExprStored: Bool = false
+    public var columnDefault: String = ""
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case TableSchema
@@ -371,49 +315,7 @@ public class Column: Codable {
         case Ignore
     }
 
-    public init(
-        tableSchema: String = "",
-        tableName: String = "",
-        columnName: String = "",
-        columnType: String = "",
-        characterLength: String = "",
-        numericPrecision: String = "",
-        numericScale: String = "",
-        isNotNull: Bool = false,
-        isPrimaryKey: Bool = false,
-        isAutoincrement: Bool = false,
-        referencesSchema: String = "",
-        referencesTable: String = "",
-        referencesColumn: String = "",
-        updateRule: String = "",
-        deleteRule: String = "",
-        isGenerated: Bool = false,
-        generatedExpr: String = "",
-        generatedExprStored: Bool = false,
-        columnDefault: String = "",
-        ignore: Bool = false
-    ) {
-        self.tableSchema = tableSchema
-        self.tableName = tableName
-        self.columnName = columnName
-        self.columnType = columnType
-        self.characterLength = characterLength
-        self.numericPrecision = numericPrecision
-        self.numericScale = numericScale
-        self.isNotNull = isNotNull
-        self.isPrimaryKey = isPrimaryKey
-        self.isAutoincrement = isAutoincrement
-        self.referencesSchema = referencesSchema
-        self.referencesTable = referencesTable
-        self.referencesColumn = referencesColumn
-        self.updateRule = updateRule
-        self.deleteRule = deleteRule
-        self.isGenerated = isGenerated
-        self.generatedExpr = generatedExpr
-        self.generatedExprStored = generatedExprStored
-        self.columnDefault = columnDefault
-        self.ignore = ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -582,31 +484,7 @@ public class Constraint: Codable {
         case Ignore
     }
 
-    public init(
-        TableSchema: String = "",
-        TableName: String = "",
-        ConstraintName: String = "",
-        ConstraintType: String = "",
-        Columns: [String] = [],
-        ReferencesSchema: String = "",
-        ReferencesTable: String = "",
-        ReferencesColumns: [String] = [],
-        UpdateRule: String = "",
-        DeleteRule: String = "",
-        Ignore: Bool = false
-    ) {
-        self.tableSchema = TableSchema
-        self.tableName = TableName
-        self.constraintName = ConstraintName
-        self.constraintType = ConstraintType
-        self.columns = Columns
-        self.referencesSchema = ReferencesSchema
-        self.referencesTable = ReferencesTable
-        self.referencesColumns = ReferencesColumns
-        self.updateRule = UpdateRule
-        self.deleteRule = DeleteRule
-        self.ignore = Ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -688,13 +566,13 @@ public class Constraint: Codable {
 }
 
 public class Index: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var IndexName: String = ""
-    public var IsUnique: Bool = false
-    public var Columns: [String] = []
-    public var SQL: String = ""
-    public var Ignore: Bool = false
+    public var tableSchema: String = ""
+    public var tableName: String = ""
+    public var indexName: String = ""
+    public var isUnique: Bool = false
+    public var columns: [String] = []
+    public var sql: String = ""
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case TableSchema
@@ -706,80 +584,64 @@ public class Index: Codable {
         case Ignore
     }
 
-    public init(
-        TableSchema: String = "",
-        TableName: String = "",
-        IndexName: String = "",
-        IsUnique: Bool = false,
-        Columns: [String] = [],
-        SQL: String = "",
-        Ignore: Bool = false
-    ) {
-        self.TableSchema = TableSchema
-        self.TableName = TableName
-        self.IndexName = IndexName
-        self.IsUnique = IsUnique
-        self.Columns = Columns
-        self.SQL = SQL
-        self.Ignore = Ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema =
+        self.tableSchema =
             try container.decodeIfPresent(String.self, forKey: .TableSchema)
-            ?? self.TableSchema
-        self.TableName =
+            ?? self.tableSchema
+        self.tableName =
             try container.decodeIfPresent(String.self, forKey: .TableName)
-            ?? self.TableName
-        self.IndexName =
+            ?? self.tableName
+        self.indexName =
             try container.decodeIfPresent(String.self, forKey: .IndexName)
-            ?? self.IndexName
-        self.IsUnique =
+            ?? self.indexName
+        self.isUnique =
             try container.decodeIfPresent(Bool.self, forKey: .IsUnique)
-            ?? self.IsUnique
-        self.Columns =
+            ?? self.isUnique
+        self.columns =
             try container.decodeIfPresent([String].self, forKey: .Columns)
-            ?? self.Columns
-        self.SQL =
-            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.Ignore =
+            ?? self.columns
+        self.sql =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.sql
+        self.ignore =
             try container.decodeIfPresent(Bool.self, forKey: .Ignore)
-            ?? self.Ignore
+            ?? self.ignore
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        if !TableSchema.isEmpty {
-            try container.encode(TableSchema, forKey: .TableSchema)
+        if !tableSchema.isEmpty {
+            try container.encode(tableSchema, forKey: .TableSchema)
         }
-        if !TableName.isEmpty {
-            try container.encode(TableName, forKey: .TableName)
+        if !tableName.isEmpty {
+            try container.encode(tableName, forKey: .TableName)
         }
-        if !IndexName.isEmpty {
-            try container.encode(IndexName, forKey: .IndexName)
+        if !indexName.isEmpty {
+            try container.encode(indexName, forKey: .IndexName)
         }
-        if IsUnique {
-            try container.encode(IsUnique, forKey: .IsUnique)
+        if isUnique {
+            try container.encode(isUnique, forKey: .IsUnique)
         }
-        if !Columns.isEmpty {
-            try container.encode(Columns, forKey: .Columns)
+        if !columns.isEmpty {
+            try container.encode(columns, forKey: .Columns)
         }
-        if !SQL.isEmpty {
-            try container.encode(SQL, forKey: .SQL)
+        if !sql.isEmpty {
+            try container.encode(sql, forKey: .SQL)
         }
-        if Ignore {
-            try container.encode(Ignore, forKey: .Ignore)
+        if ignore {
+            try container.encode(ignore, forKey: .Ignore)
         }
     }
 }
 
 public class Trigger: Codable {
-    public var TableSchema: String = ""
-    public var TableName: String = ""
-    public var TriggerName: String = ""
-    public var SQL: String = ""
-    public var Ignore: Bool = false
+    public var tableSchema: String = ""
+    public var tableName: String = ""
+    public var triggerName: String = ""
+    public var sql: String = ""
+    public var ignore: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case TableSchema
@@ -789,54 +651,42 @@ public class Trigger: Codable {
         case Ignore
     }
 
-    public init(
-        TableSchema: String = "",
-        TableName: String = "",
-        TriggerName: String = "",
-        SQL: String = "",
-        Ignore: Bool = false
-    ) {
-        self.TableSchema = TableSchema
-        self.TableName = TableName
-        self.TriggerName = TriggerName
-        self.SQL = SQL
-        self.Ignore = Ignore
-    }
+    public init() {}
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.TableSchema =
+        self.tableSchema =
             try container.decodeIfPresent(String.self, forKey: .TableSchema)
-            ?? self.TableSchema
-        self.TableName =
+            ?? self.tableSchema
+        self.tableName =
             try container.decodeIfPresent(String.self, forKey: .TableName)
-            ?? self.TableName
-        self.TriggerName =
+            ?? self.tableName
+        self.triggerName =
             try container.decodeIfPresent(String.self, forKey: .TriggerName)
-            ?? self.TriggerName
-        self.SQL =
-            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.SQL
-        self.Ignore =
+            ?? self.triggerName
+        self.sql =
+            try container.decodeIfPresent(String.self, forKey: .SQL) ?? self.sql
+        self.ignore =
             try container.decodeIfPresent(Bool.self, forKey: .Ignore)
-            ?? self.Ignore
+            ?? self.ignore
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        if !TableSchema.isEmpty {
-            try container.encode(TableSchema, forKey: .TableSchema)
+        if !tableSchema.isEmpty {
+            try container.encode(tableSchema, forKey: .TableSchema)
         }
-        if !TableName.isEmpty {
-            try container.encode(TableName, forKey: .TableName)
+        if !tableName.isEmpty {
+            try container.encode(tableName, forKey: .TableName)
         }
-        if !TriggerName.isEmpty {
-            try container.encode(TriggerName, forKey: .TriggerName)
+        if !triggerName.isEmpty {
+            try container.encode(triggerName, forKey: .TriggerName)
         }
-        if !SQL.isEmpty {
-            try container.encode(SQL, forKey: .SQL)
+        if !sql.isEmpty {
+            try container.encode(sql, forKey: .SQL)
         }
-        if Ignore {
-            try container.encode(Ignore, forKey: .Ignore)
+        if ignore {
+            try container.encode(ignore, forKey: .Ignore)
         }
     }
 }
@@ -914,7 +764,7 @@ public struct CatalogCache {
                     let indexID = Triple(
                         schema.schemaName,
                         table.tableName,
-                        index.IndexName
+                        index.indexName
                     )
                     self.indexIndices[indexID] = k
                 }
@@ -922,7 +772,7 @@ public struct CatalogCache {
                     let triggerID = Triple(
                         schema.schemaName,
                         table.tableName,
-                        trigger.TriggerName
+                        trigger.triggerName
                     )
                     self.triggerIndices[triggerID] = k
                 }
@@ -1162,7 +1012,7 @@ public struct CatalogCache {
             return nil
         }
         let indexID = Triple(table.tableSchema, table.tableName, indexName)
-        if let i = indexIndices[indexID], !table.indexes[i].Ignore {
+        if let i = indexIndices[indexID], !table.indexes[i].ignore {
             return table.indexes[i]
         }
         return nil
@@ -1172,13 +1022,13 @@ public struct CatalogCache {
         -> Index
     {
         let indexID = Triple(table.tableSchema, table.tableName, indexName)
-        if let i = indexIndices[indexID], !table.indexes[i].Ignore {
+        if let i = indexIndices[indexID], !table.indexes[i].ignore {
             return table.indexes[i]
         }
         let index = Index()
-        index.TableSchema = table.tableSchema
-        index.TableName = table.tableName
-        index.IndexName = indexName
+        index.tableSchema = table.tableSchema
+        index.tableName = table.tableName
+        index.indexName = indexName
         table.indexes.append(index)
         let i = table.indexes.count - 1
         indexIndices[indexID] = i
@@ -1189,9 +1039,9 @@ public struct CatalogCache {
         let indexID = Triple(
             table.tableSchema,
             table.tableName,
-            index.IndexName
+            index.indexName
         )
-        if let i = indexIndices[indexID], !table.indexes[i].Ignore {
+        if let i = indexIndices[indexID], !table.indexes[i].ignore {
             table.indexes[i] = index
             return
         }
@@ -1205,7 +1055,7 @@ public struct CatalogCache {
             return nil
         }
         let triggerID = Triple(table.tableSchema, table.tableName, triggerName)
-        if let i = triggerIndices[triggerID], !table.triggers[i].Ignore {
+        if let i = triggerIndices[triggerID], !table.triggers[i].ignore {
             return table.triggers[i]
         }
         return nil
@@ -1215,13 +1065,13 @@ public struct CatalogCache {
         -> Trigger
     {
         let triggerID = Triple(table.tableSchema, table.tableName, triggerName)
-        if let i = triggerIndices[triggerID], !table.triggers[i].Ignore {
+        if let i = triggerIndices[triggerID], !table.triggers[i].ignore {
             return table.triggers[i]
         }
         let trigger = Trigger()
-        trigger.TableSchema = table.tableSchema
-        trigger.TableName = table.tableName
-        trigger.TriggerName = triggerName
+        trigger.tableSchema = table.tableSchema
+        trigger.tableName = table.tableName
+        trigger.triggerName = triggerName
         table.triggers.append(trigger)
         let i = table.triggers.count - 1
         triggerIndices[triggerID] = i
@@ -1232,9 +1082,9 @@ public struct CatalogCache {
         let triggerID = Triple(
             table.tableSchema,
             table.tableName,
-            trigger.TriggerName
+            trigger.triggerName
         )
-        if let i = triggerIndices[triggerID], !table.triggers[i].Ignore {
+        if let i = triggerIndices[triggerID], !table.triggers[i].ignore {
             table.triggers[i] = trigger
             return
         }

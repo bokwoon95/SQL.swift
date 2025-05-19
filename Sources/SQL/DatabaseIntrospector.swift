@@ -349,13 +349,13 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let index = Index()
-            index.TableName = try row.string("table_name")
-            index.IndexName = try row.string("index_name")
-            index.IsUnique = try row.bool("is_unique")
+            index.tableName = try row.string("table_name")
+            index.indexName = try row.string("index_name")
+            index.isUnique = try row.bool("is_unique")
             let columns = try row.string("group_concat(column_name) AS columns")
-            index.SQL = try row.string("sql || ';' AS sql")
+            index.sql = try row.string("sql || ';' AS sql")
             if !columns.isEmpty {
-                index.Columns = columns.components(separatedBy: ",")
+                index.columns = columns.components(separatedBy: ",")
             }
             return index
         }
@@ -449,10 +449,10 @@ public struct DatabaseIntrospector {
             ]
         ) { row in
             let trigger = Trigger()
-            trigger.TableName = try row.string("tbl_name AS table_name")
-            trigger.TriggerName = try row.string("name AS trigger_name")
+            trigger.tableName = try row.string("tbl_name AS table_name")
+            trigger.triggerName = try row.string("name AS trigger_name")
             let sql = try row.string("sql || ';' AS sql")
-            trigger.SQL = sql.replacingOccurrences(of: "\r\n", with: "\n")
+            trigger.sql = sql.replacingOccurrences(of: "\r\n", with: "\n")
             return trigger
         }
     }
