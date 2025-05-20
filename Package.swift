@@ -22,7 +22,7 @@ let package = Package(
             name: "SQLTests",
             dependencies: ["SQL"],
             resources: [
-                .process("bundle")
+                .process("sqlite_schema.json")
             ]
         ),
     ]

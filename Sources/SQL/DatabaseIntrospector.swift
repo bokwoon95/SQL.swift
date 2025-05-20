@@ -604,7 +604,6 @@ func wrappedInBrackets(_ s: String) -> Bool {
     return !s.isEmpty && s.first == "(" && s.last == ")"
 }
 
-// TODO: port from ddl.go (only handle SQLite)
 func normalizeColumnType(columnType: String) -> (
     normalizedType: String, arg1: String, arg2: String
 ) {
@@ -641,7 +640,6 @@ func normalizeColumnType(columnType: String) -> (
     return (normalizedType, arg1, arg2)
 }
 
-// TODO: port from ddl.go (only handle SQLite)
 func normalizeColumnDefault(columnDefault: String) -> String {
     let columnDefault = columnDefault.trimmingCharacters(
         in: .whitespacesAndNewlines

@@ -4,7 +4,7 @@ import Testing
 
 @testable import SQL
 
-class TestQuery {
+@Suite class TestQuery {
     @Test func empty() throws {
         let gotQuery = try Query(sql: "", values: [])
         let wantQuery = Query(
@@ -333,7 +333,7 @@ class TestQuery {
     }
 }
 
-class TestDatabase {
+@Suite class TestDatabase {
     @Test func openAndClose() throws {
         let poolSize = 3
         var database = try Database(
