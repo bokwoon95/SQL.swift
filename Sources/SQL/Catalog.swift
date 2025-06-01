@@ -16,14 +16,10 @@ public let SET_DEFAULT = "SET DEFAULT"
 
 public class Catalog: Codable {
     public var versionNums: [Int] = []
-    public var catalogName: String = ""
-    public var currentSchema: String = ""
     public var schemas: [Schema] = []
 
     private enum CodingKeys: String, CodingKey {
         case VersionNums
-        case CatalogName
-        case CurrentSchema
         case Schemas
     }
 
@@ -34,12 +30,6 @@ public class Catalog: Codable {
         self.versionNums =
             try container.decodeIfPresent([Int].self, forKey: .VersionNums)
             ?? []
-        self.catalogName =
-            try container.decodeIfPresent(String.self, forKey: .CatalogName)
-            ?? ""
-        self.currentSchema =
-            try container.decodeIfPresent(String.self, forKey: .CurrentSchema)
-            ?? ""
         self.schemas =
             try container.decodeIfPresent([Schema].self, forKey: .Schemas)
             ?? []
@@ -49,12 +39,6 @@ public class Catalog: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         if !versionNums.isEmpty {
             try container.encode(versionNums, forKey: .VersionNums)
-        }
-        if !catalogName.isEmpty {
-            try container.encode(catalogName, forKey: .CatalogName)
-        }
-        if !currentSchema.isEmpty {
-            try container.encode(currentSchema, forKey: .CurrentSchema)
         }
         if !schemas.isEmpty {
             try container.encode(schemas, forKey: .Schemas)
@@ -280,6 +264,7 @@ public class Column: Codable {
     public var numericScale: String = ""
     public var isNotNull: Bool = false
     public var isPrimaryKey: Bool = false
+    public var isUnique: Bool = false
     public var isAutoincrement: Bool = false
     public var referencesSchema: String = ""
     public var referencesTable: String = ""
@@ -302,6 +287,7 @@ public class Column: Codable {
         case NumericScale
         case IsNotNull
         case IsPrimaryKey
+        case IsUnique
         case IsAutoincrement
         case ReferencesSchema
         case ReferencesTable
@@ -347,6 +333,9 @@ public class Column: Codable {
             ?? false
         self.isPrimaryKey =
             try container.decodeIfPresent(Bool.self, forKey: .IsPrimaryKey)
+            ?? false
+        self.isUnique =
+            try container.decodeIfPresent(Bool.self, forKey: .IsUnique)
             ?? false
         self.isAutoincrement =
             try container.decodeIfPresent(Bool.self, forKey: .IsAutoincrement)
@@ -417,6 +406,9 @@ public class Column: Codable {
         }
         if isPrimaryKey {
             try container.encode(isPrimaryKey, forKey: .IsPrimaryKey)
+        }
+        if isUnique {
+            try container.encode(isUnique, forKey: .IsUnique)
         }
         if isAutoincrement {
             try container.encode(isAutoincrement, forKey: .IsAutoincrement)

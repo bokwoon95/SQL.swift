@@ -5,7 +5,7 @@ public struct Filter {
     public var versionNums: [Int] = []
     public var includeSystemCatalogs: Bool = false
     public var constraintTypes: Set<String> = Set()
-    public var objectTypes: Set<String> = Set()
+    public var objectTypes: Set<String> = Set()  // VIEWS, TABLES
     public var tables: [String] = []
     public var schemas: [String] = []
     public var excludeSchemas: [String] = []
@@ -33,6 +33,151 @@ public struct DatabaseIntrospector {
             result += "'" + str.replacingOccurrences(of: "'", with: "''") + "'"
         }
         return result
+    }
+
+    public mutating func writeCatalog(catalog: Catalog) throws {
+        var cache = CatalogCache(from: catalog)
+        catalog.versionNums = try getVersionNums()
+        filter.versionNums = catalog.versionNums
+        if filter.objectTypes.isEmpty || filter.objectTypes.contains("VIEWS") {
+            let views = try getViews()
+            for view in views {
+                let schema = cache.getOrCreateSchema(
+                    catalog: catalog,
+                    schemaName: view.viewSchema
+                )
+                schema.viewsValid = true
+                cache.addOrUpdateView(schema: schema, view: view)
+            }
+        }
+        if filter.objectTypes.isEmpty || filter.objectTypes.contains("TABLES") {
+            let tables = try getTables()
+            for table in tables {
+                let schema = cache.getOrCreateSchema(
+                    catalog: catalog,
+                    schemaName: table.tableSchema
+                )
+                cache.addOrUpdateTable(schema: schema, table: table)
+            }
+            let columns = try getColumns()
+            for column in columns {
+                guard
+                    let schema = cache.getSchema(
+                        catalog: catalog,
+                        schemaName: column.tableSchema
+                    )
+                else {
+                    continue
+                }
+                guard
+                    let table = cache.getTable(
+                        schema: schema,
+                        tableName: column.tableName
+                    )
+                else {
+                    continue
+                }
+                cache.addOrUpdateColumn(table: table, column: column)
+            }
+            let constraints = try getConstraints()
+            for constraint in constraints {
+                guard
+                    let schema = cache.getSchema(
+                        catalog: catalog,
+                        schemaName: constraint.tableSchema
+                    )
+                else {
+                    continue
+                }
+                guard
+                    let table = cache.getTable(
+                        schema: schema,
+                        tableName: constraint.tableName
+                    )
+                else {
+                    continue
+                }
+                cache.addOrUpdateConstraint(
+                    table: table,
+                    constraint: constraint
+                )
+            }
+            let indexes = try getIndexes()
+            for index in indexes {
+                guard
+                    let schema = cache.getSchema(
+                        catalog: catalog,
+                        schemaName: index.tableSchema
+                    )
+                else {
+                    continue
+                }
+                guard
+                    let table = cache.getTable(
+                        schema: schema,
+                        tableName: index.tableName
+                    )
+                else {
+                    continue
+                }
+                cache.addOrUpdateIndex(table: table, index: index)
+            }
+            let triggers = try getTriggers()
+            for trigger in triggers {
+                guard
+                    let schema = cache.getSchema(
+                        catalog: catalog,
+                        schemaName: trigger.tableSchema
+                    )
+                else {
+                    continue
+                }
+                guard
+                    let table = cache.getTable(
+                        schema: schema,
+                        tableName: trigger.tableName
+                    )
+                else {
+                    continue
+                }
+                cache.addOrUpdateTrigger(table: table, trigger: trigger)
+            }
+            // Set IsPrimaryKey and IsUnique fields for each primary key or unique column.
+            for schema in catalog.schemas {
+                for table in schema.tables {
+                    for constraint in table.constraints {
+                        if constraint.columns.count != 1 {
+                            continue
+                        }
+                        guard
+                            let column = cache.getColumn(
+                                table: table,
+                                columnName: constraint.columns[0]
+                            )
+                        else {
+                            continue
+                        }
+                        switch constraint.constraintType {
+                        case PRIMARY_KEY:
+                            column.isPrimaryKey = true
+                        case UNIQUE:
+                            column.isUnique = true
+                        case FOREIGN_KEY:
+                            column.referencesSchema =
+                                constraint.referencesSchema
+                            column.referencesTable = constraint.referencesTable
+                            column.referencesColumn =
+                                constraint.referencesColumns[0]
+                            column.updateRule = constraint.updateRule
+                            column.deleteRule = constraint.deleteRule
+                        default:
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     public mutating func getVersion() throws -> String {
