@@ -4,8 +4,8 @@ public struct Filter {
     public var version: String = ""
     public var versionNums: [Int] = []
     public var includeSystemCatalogs: Bool = false
-    public var constraintTypes: Set<String> = Set()
-    public var objectTypes: Set<String> = Set()  // VIEWS, TABLES
+    public var constraintTypes: Set<String> = Set()  // PRIMARY KEY | FOREIGN KEY | UNIQUE
+    public var objectTypes: Set<String> = Set()  // VIEWS | TABLES
     public var tables: [String] = []
     public var schemas: [String] = []
     public var excludeSchemas: [String] = []
@@ -810,6 +810,12 @@ func normalizeColumnDefault(columnDefault: String) -> String {
     }
 
     return columnDefault
+}
+
+// Really hacky way to detect virtual tables, switch to a more sophisticated
+// method if problems are reported.
+func isVirtualTable(_ table: Table) -> Bool {
+    return table.isVirtual || table.sql.hasPrefix("CREATE VIRTUAL TABLE")
 }
 
 func compareVersionNums(lhs: [Int], rhs: [Int]) -> Int {
